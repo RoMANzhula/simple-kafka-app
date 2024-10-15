@@ -4,17 +4,15 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
   datasource:
-    url: jdbc:h2:mem:testdb
-    driverClassName: org.h2.Driver
-    username: qwe
-    password: 123
+    url: jdbc:postgresql://${HOST}:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
     jpa:
       hibernate:
-        ddl-auto: update
-      database-platform: org.hibernate.dialect.H2Dialect
-    h2:
-      console:
-        enabled: true
+        ddl-auto: none
+    liquibase:
+      change-log: classpath:liquibase/db.changelog.yaml
+      enabled: true
 
 server:
   port: 8082
