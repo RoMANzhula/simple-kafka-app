@@ -2,3 +2,4 @@ databaseChangeLog:
   - includeAll:
       path: /change_sets
       relativeToChangelogFile: true
+
