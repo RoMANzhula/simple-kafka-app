@@ -2,21 +2,20 @@ package org.romanzhula.dataanalyser.config;
 
 import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
-import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 
-import java.io.File;
+import java.io.IOException;
 
 @Configuration
 public class BeanConfig {
 
-    @SneakyThrows //lombok's throwing exceptions to low layer
     @Bean
-    public XML consumerXML() {
-        return new XMLDocument(
-                new File("src/main/resources/kafka/consumer.xml")
-        );
+    public XML consumerXML() throws IOException {
+
+        ClassPathResource resource = new ClassPathResource("kafka/consumer.xml");
+        return new XMLDocument(resource.getInputStream());
     }
 
 }
