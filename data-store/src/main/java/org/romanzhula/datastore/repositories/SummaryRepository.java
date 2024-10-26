@@ -1,5 +1,6 @@
 package org.romanzhula.datastore.repositories;
 
+import org.romanzhula.datastore.models.Data;
 import org.romanzhula.datastore.models.Summary;
 import org.romanzhula.datastore.models.enums.MeasurementType;
 import org.romanzhula.datastore.models.enums.SummaryType;
@@ -15,5 +16,7 @@ public interface SummaryRepository {
             Set<MeasurementType> measurementTypes,
             Set<SummaryType> summaryTypes
     );
+
+    void handle(Data data);
 
 }
