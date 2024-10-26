@@ -22,8 +22,6 @@ services:
     depends_on:
       - postgres
       - kafka
-    env_file:
-      - .env
     ports:
       - '8081:8081'
 
@@ -33,17 +31,23 @@ services:
       - app
     depends_on:
       - kafka
-    env_file:
-      - .env
     ports:
       - '8082:8082'
+
+  store:
+    image: 'romanzhula/simple-kafka-app:data-store'
+    networks:
+      - app
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - '8083:8083'
 
   zookeeper:
     image: 'confluentinc/cp-zookeeper:latest'
     networks:
       - app
-    env_file:
-      - .env
     ports:
       - '2181:2181'
     volumes:
@@ -53,8 +57,6 @@ services:
     image: 'confluentinc/cp-kafka:latest'
     networks:
       - app
-    env_file:
-      - .env
     ports:
       - '9092:9092'
     volumes:
@@ -64,8 +66,6 @@ services:
     image: 'postgres:latest'
     networks:
       - app
-    env_file:
-      - .env
     ports:
       - '5437:5432'
     volumes:
@@ -75,8 +75,6 @@ services:
     image: redis:7.2-rc-alpine
     networks:
       - app
-    env_file:
-      - .env
     ports:
       - '6379:6379'
     command:
