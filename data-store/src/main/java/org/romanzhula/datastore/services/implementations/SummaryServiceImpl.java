@@ -3,6 +3,7 @@ package org.romanzhula.datastore.services.implementations;
 import lombok.RequiredArgsConstructor;
 import org.romanzhula.datastore.dto.SummaryDTO;
 import org.romanzhula.datastore.mappers.SummaryMappable;
+import org.romanzhula.datastore.models.Data;
 import org.romanzhula.datastore.models.Summary;
 import org.romanzhula.datastore.models.enums.MeasurementType;
 import org.romanzhula.datastore.models.enums.SummaryType;
@@ -37,6 +38,11 @@ public class SummaryServiceImpl implements SummaryService {
         ;
 
         return summaryMappable.toDto(summary);
+    }
+
+    @Override
+    public void handle(Data data) {
+        summaryRepository.handle(data);
     }
 
 }
