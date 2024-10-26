@@ -15,5 +15,6 @@ public class SummaryEntry {
 
     private SummaryType summaryType;
     private Double value;
+    private Long counter;
 
 }
