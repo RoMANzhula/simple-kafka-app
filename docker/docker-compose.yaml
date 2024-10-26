@@ -15,8 +15,39 @@ volumes:
     driver: local
 
 services:
+#  generator:
+#    image: 'romanzhula/simple-kafka-app:data-generate'
+#    networks:
+#      - app
+#    depends_on:
+#      - postgres
+#      - kafka
+#    ports:
+#      - '8081:8081'
+#
+#  analyser:
+#    image: 'romanzhula/simple-kafka-app:data-analyse'
+#    networks:
+#      - app
+#    depends_on:
+#      - kafka
+#    ports:
+#      - '8082:8082'
+#
+#  store:
+#    image: 'romanzhula/simple-kafka-app:data-store'
+#    networks:
+#      - app
+#    depends_on:
+#      - postgres
+#      - kafka
+#    ports:
+#      - '8083:8083'
+
   generator:
-    image: 'romanzhula/simple-kafka-app:data-generate'
+    build:
+      context: ./data-generator
+      dockerfile: Dockerfile
     networks:
       - app
     depends_on:
@@ -26,7 +57,9 @@ services:
       - '8081:8081'
 
   analyser:
-    image: 'romanzhula/simple-kafka-app:data-analyse'
+    build:
+      context: ./data-analyser
+      dockerfile: Dockerfile
     networks:
       - app
     depends_on:
@@ -35,7 +68,9 @@ services:
       - '8082:8082'
 
   store:
-    image: 'romanzhula/simple-kafka-app:data-store'
+    build:
+      context: ./data-store
+      dockerfile: Dockerfile
     networks:
       - app
     depends_on:
