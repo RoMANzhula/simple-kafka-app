@@ -2,6 +2,7 @@ package org.romanzhula.datastore.services;
 
 
 import org.romanzhula.datastore.dto.SummaryDTO;
+import org.romanzhula.datastore.models.Data;
 import org.romanzhula.datastore.models.enums.MeasurementType;
 import org.romanzhula.datastore.models.enums.SummaryType;
 
@@ -14,5 +15,7 @@ public interface SummaryService {
             Set<MeasurementType> measurementTypes,
             Set<SummaryType> summaryTypes
     );
+
+    void handle(Data data);
 
 }
