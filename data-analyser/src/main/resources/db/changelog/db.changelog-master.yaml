@@ -1,5 +1,6 @@
 databaseChangeLog:
+  - include:
+        file: classpath:/db/changelog/db.changelog-master.yaml
   - includeAll:
-      path: /change_sets
+      path: /changesets
       relativeToChangelogFile: true
-
