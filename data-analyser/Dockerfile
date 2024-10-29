@@ -1,4 +1,4 @@
-FROM openjdk:22-jdk-slim as build
+FROM openjdk:17-jdk-slim as build
 
 # install Maven byself
 RUN apt-get update && \
@@ -11,7 +11,7 @@ COPY pom.xml /
 RUN mvn -f /pom.xml clean package
 
 # running
-FROM openjdk:22-jdk-slim
+FROM openjdk:17-jdk-slim
 COPY --from=build /target/*.jar app.jar
 EXPOSE 8082
 ENTRYPOINT ["java", "-jar", "app.jar"]
