@@ -33,14 +33,32 @@ public class DebeziumCDCEventConsumerImpl implements CDCEventConsumer {
 
             Data data = new Data();
 
-            data.setId(payload.get("id").getAsLong());
-            data.setSensorId(payload.get("sensor_id").getAsLong());
-            data.setMeasurement(payload.get("measurement").getAsDouble());
-            data.setMeasurementType(MeasurementType.valueOf(payload.get("type").getAsString()));
-            data.setTimestamp(LocalDateTime.ofInstant(
-                    Instant.ofEpochMilli(payload.get("timestamp").getAsLong() / 1000),
-                    TimeZone.getDefault().toZoneId()
-            ));
+            if (payload.has("id") && !payload.get("id").isJsonNull()) {
+                data.setId(payload.get("id").getAsLong());
+            }
+
+            if (payload.has("sensor_id") && !payload.get("sensor_id").isJsonNull()) {
+                data.setSensorId(payload.get("sensor_id").getAsLong());
+            }
+
+            if (payload.has("measurement") && !payload.get("measurement").isJsonNull()) {
+                data.setMeasurement(payload.get("measurement").getAsDouble());
+            }
+
+            if (payload.has("type") && !payload.get("type").isJsonNull()) {
+                try {
+                    data.setMeasurementType(MeasurementType.valueOf(payload.get("type").getAsString()));
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Невідомий тип вимірювання: " + payload.get("type").getAsString());
+                }
+            }
+
+            if (payload.has("timestamp") && !payload.get("timestamp").isJsonNull()) {
+                data.setTimestamp(LocalDateTime.ofInstant(
+                        Instant.ofEpochMilli(payload.get("timestamp").getAsLong() / 1000),
+                        TimeZone.getDefault().toZoneId()
+                ));
+            }
 
             summaryService.handle(data);
 
