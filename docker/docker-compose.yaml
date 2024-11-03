@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.0'
 
 networks:
   app:
@@ -13,76 +13,64 @@ volumes:
     driver: local
   zookeeper-data:
     driver: local
+  debezium-data:
+    driver: local
 
 services:
-#  generator:
-#    image: 'romanzhula/simple-kafka-app:data-generate'
-#    networks:
-#      - app
-#    depends_on:
-#      - postgres
-#      - kafka
-#    ports:
-#      - '8081:8081'
-#
-#  analyser:
-#    image: 'romanzhula/simple-kafka-app:data-analyse'
-#    networks:
-#      - app
-#    depends_on:
-#      - kafka
-#    ports:
-#      - '8082:8082'
-#
-#  store:
-#    image: 'romanzhula/simple-kafka-app:data-store'
-#    networks:
-#      - app
-#    depends_on:
-#      - postgres
-#      - kafka
-#    ports:
-#      - '8083:8083'
-
   generator:
-    build:
-      context: ./data-generator
-      dockerfile: Dockerfile
+    image: 'romanzhula/simple-kafka-app:data-generate'
     networks:
       - app
     depends_on:
-      - postgres
       - kafka
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - KAFKA_SUBSCRIBED_TOPICS=${KAFKA_SUBSCRIBED_TOPICS}
     ports:
       - '8081:8081'
 
   analyser:
-    build:
-      context: ./data-analyser
-      dockerfile: Dockerfile
-    networks:
-      - app
-    depends_on:
-      - kafka
-    ports:
-      - '8082:8082'
-
-  store:
-    build:
-      context: ./data-store
-      dockerfile: Dockerfile
+    image: 'romanzhula/simple-kafka-app:data-analyser'
     networks:
       - app
     depends_on:
       - postgres
       - kafka
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - KAFKA_SUBSCRIBED_TOPICS=${KAFKA_SUBSCRIBED_TOPICS}
+      - HOST=${HOST}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     ports:
-      - '8083:8083'
+      - '8082:8082'
+
+  store:
+    image: 'romanzhula/simple-kafka-app:data-store'
+    networks:
+      - app
+    depends_on:
+      - debezium
+      - redis
+      - kafka
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - KAFKA_BROKER_ID=${KAFKA_BROKER_ID}
+    ports:
+      - '8085:8083'
 
   zookeeper:
     image: 'confluentinc/cp-zookeeper:latest'
     networks:
       - app
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=${ZOOKEEPER_CLIENT_PORT}
+      - ZOOKEEPER_TICK_TIME=${ZOOKEEPER_TICK_TIME}
     ports:
       - '2181:2181'
     volumes:
@@ -92,17 +80,35 @@ services:
     image: 'confluentinc/cp-kafka:latest'
     networks:
       - app
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_BROKER_ID=${KAFKA_BROKER_ID}
+      - KAFKA_ZOOKEEPER_CONNECT=${KAFKA_ZOOKEEPER_CONNECT}
+      - KAFKA_ADVERTISED_LISTENERS=${KAFKA_ADVERTISED_LISTENERS}
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP}
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - CONNECT_BOOTSTRAP_SERVERS=kafka:9092
+      - CONNECT_REQUEST_TIMEOUT_MS="30000"
+      - CONNECT_RETRY_BACKOFF_MS="5000"
     ports:
       - '9092:9092'
     volumes:
       - kafka-data:/var/lib/kafka/data
 
   postgres:
-    image: 'postgres:latest'
+    image: 'postgres:15.2-alpine'
     networks:
       - app
+    env_file:
+      - .env
     ports:
-      - '5437:5432'
+      - '5432:5432'
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
     volumes:
       - db-data:/var/lib/postgresql/data
 
@@ -110,9 +116,31 @@ services:
     image: redis:7.2-rc-alpine
     networks:
       - app
+    env_file:
+      - .env
+    sysctls:
+      vm.overcommit_memory: 1
     ports:
       - '6379:6379'
-    command:
-      - redis-server --save 20 1 --loglevel warning
+    command: redis-server --save 20 1 --loglevel warning
     volumes:
       - redis-data:/data
+
+  debezium:
+    image: debezium/connect:2.4.0.Final
+    networks:
+      - app
+    depends_on:
+      - kafka
+    environment:
+      - BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - GROUP_ID=${DEBEZIUM_KAFKA_BROKER_ID}
+      - CONFIG_STORAGE_TOPIC=my_connect_configs
+      - OFFSET_STORAGE_TOPIC=my_connect_offsets
+      - STATUS_STORAGE_TOPIC=my_connect_statuses
+    user: root
+    ports:
+      - '8084:8083'
+    volumes:
+      - debezium-data:/debezium/data
+      - ./conf/:/on-startup/
