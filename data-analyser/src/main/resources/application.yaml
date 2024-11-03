@@ -1,20 +1,21 @@
 spring:
-  config:
-    import: optional:file:.env[.properties]
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    bootstrap-servers: kafka:9092
   datasource:
-    url: jdbc:postgresql://${HOST}:5432/${POSTGRES_DB}
-    username: ${POSTGRES_USERNAME}
-    password: ${POSTGRES_PASSWORD}
-    jpa:
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://127.0.0.1:5432/______
+    username: postgres
+    password: ______
+  jpa:
+    properties:
       hibernate:
         ddl-auto: none
-    liquibase:
-      change-log: classpath:liquibase/db.changelog.yaml
-      enabled: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: false
 
 server:
   port: 8082
 
-topics: ${KAFKA_SUBSCRIBED_TOPICS}
+topics: data-temperature,data-power,data-voltage
