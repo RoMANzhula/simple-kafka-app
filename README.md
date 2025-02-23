@@ -2,7 +2,7 @@
 
 This repository contains a multi-module Spring Boot application for data analysis, generation, and storage. Each module is designed to serve a specific purpose within the application, with components for data handling, analysis, and persistence.
 
-## Technologies Used
+## Technologies Used:
 
 ### Spring Boot: Framework for Java applications.
 ### Apache Kafka: Messaging system for asynchronous data streaming.
